@@ -88,7 +88,7 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
         lines.append("")
 
     if admin_duties:
-        lines.append("🏫 **行政值班**（7:00-21:40）")
+        lines.append("🏫 **常规行政值班**（7:00-21:40）")
         for d in admin_duties:
             lines.append(f"- {d['location']}：{d['name']}")
         lines.append("")
