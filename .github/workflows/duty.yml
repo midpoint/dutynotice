@@ -8,12 +8,22 @@ on:
   workflow_dispatch:
     # 允许手动触发
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   duty-notice:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            config.py
+            dutynotice.py
+            dingtalk.py
+            send_duty.py
+            requirements.txt
 
       - name: Set up Python
         uses: actions/setup-python@v5
