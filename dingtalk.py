@@ -5,6 +5,7 @@ import os
 import hmac
 import hashlib
 import time
+import base64
 import json
 from datetime import datetime, date
 from typing import TypedDict
@@ -20,14 +21,15 @@ class DingTalkMessage(TypedDict):
 def get_dingtalk_sign(secret: str) -> tuple[str, str]:
     """
     获取钉钉签名
-    签名算法：HmacSHA256
+    签名算法：HmacSHA256 + Base64编码
     """
     timestamp = str(round(time.time() * 1000))
     secret_enc = secret.encode('utf-8')
     string_to_sign = f'{timestamp}\n{secret}'
     string_to_sign_enc = string_to_sign.encode('utf-8')
-    hmac_code = hmac.new(secret_enc, string_to_sign_enc, hashlib.sha256).hexdigest()
-    return timestamp, hmac_code
+    hmac_code = hmac.new(secret_enc, string_to_sign_enc, hashlib.sha256).digest()
+    sign = base64.b64encode(hmac_code).decode('utf-8')
+    return timestamp, sign
 
 
 def send_dingtalk_message(
@@ -45,11 +47,11 @@ def send_dingtalk_message(
     url = f"{webhook}&timestamp={timestamp}&sign={sign}"
 
     # 构建消息体
-    message: DingTalkMessage = {
+    message = {
         "msgtype": "markdown",
         "markdown": {
             "title": title,
-            "content": content
+            "text": content
         }
     }
 
