@@ -21,71 +21,22 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
-      - name: Get today's duties
-        id: duties
+      - name: Check DingTalk config
+        id: check_config
         run: |
-          python3 cli.py today > duties.txt
-          cat duties.txt
-          echo "content=$(cat duties.txt)" >> $GITHUB_OUTPUT
+          if [ -z "$DINGTALK_WEBHOOK" ] || [ -z "$DINGTALK_SECRET" ]; then
+            echo "钉钉配置不完整，跳过推送"
+            exit 1
+          fi
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
 
       - name: Send DingTalk notification
         if: success()
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
           DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
-        run: |
-          if [ -z "$DINGTALK_WEBHOOK" ] || [ -z "$DINGTALK_SECRET" ]; then
-            echo "钉钉配置不完整，跳过推送"
-            exit 0
-          fi
-          python3 -c "
-import os
-import sys
-sys.path.insert(0, '.')
-from dingtalk import send_dingtalk_message, format_duties_for_dingtalk
-from datetime import date
-
-# 读取值班内容
-with open('duties.txt', 'r') as f:
-    content = f.read()
-
-# 提取日期（从输出中获取）
-today = date.today()
-weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
-date_str = f\"{today.year}年{today.month}月{today.day}日 {weekdays[today.weekday()]}\"
-
-# 提取值班人员列表（简单解析）
-lines = content.split('\n')
-duties = []
-current_type = ''
-for line in lines:
-    if '夜间值班' in line:
-        current_type = '夜间值班'
-    elif '行政值班' in line and '周日' not in line:
-        current_type = '行政值班'
-    elif '周日行政值班' in line:
-        current_type = '周日行政值班'
-    elif line.strip().startswith(('🌙', '🏫', '📅')):
-        continue
-    elif line.strip().startswith('-'):
-        name = line.strip().lstrip('- ').strip()
-        if name:
-            duties.append({
-                'name': name,
-                'duty_type': current_type,
-                'location': '',
-                'time_range': ''
-            })
-
-markdown_content = format_duties_for_dingtalk(duties, date_str)
-
-send_dingtalk_message(
-    webhook=os.environ['DINGTALK_WEBHOOK'],
-    secret=os.environ['DINGTALK_SECRET'],
-    title=f'值班提醒 - {date_str}',
-    content=markdown_content
-)
-"
+        run: python3 send_duty.py
