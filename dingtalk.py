@@ -2,6 +2,7 @@
 """钉钉推送通知"""
 
 import os
+import hmac
 import hashlib
 import time
 import json
@@ -25,7 +26,7 @@ def get_dingtalk_sign(secret: str) -> tuple[str, str]:
     secret_enc = secret.encode('utf-8')
     string_to_sign = f'{timestamp}\n{secret}'
     string_to_sign_enc = string_to_sign.encode('utf-8')
-    hmac_code = hashlib.hmacsha256(secret_enc, string_to_sign_enc).hexdigest()
+    hmac_code = hmac.new(secret_enc, string_to_sign_enc, hashlib.sha256).hexdigest()
     return timestamp, hmac_code
 
 
