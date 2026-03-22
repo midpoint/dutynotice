@@ -3,12 +3,19 @@
 
 import os
 import sys
-from datetime import date
+from datetime import date, datetime, timezone, timedelta
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 from dingtalk import send_dingtalk_message, format_duties_for_dingtalk
 from dutynotice import get_all_duties
+
+
+def get_china_date():
+    """获取中国时区当前日期"""
+    china_tz = timezone(timedelta(hours=8))
+    now = datetime.now(china_tz)
+    return now.date()
 
 
 def main():
@@ -19,7 +26,7 @@ def main():
         print("错误: 请设置 DINGTALK_WEBHOOK 和 DINGTALK_SECRET 环境变量")
         sys.exit(1)
 
-    today = date.today()
+    today = get_china_date()
     weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
     date_str = f"{today.year}年{today.month}月{today.day}日 {weekdays[today.weekday()]}"
 
