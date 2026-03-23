@@ -10,6 +10,7 @@ from config import (
     NIGHT_SHIFT_GROUPS,
     ADMIN_DUTIES,
     SUNDAY_ADMIN_DUTIES,
+    SAFETY_DUTY_GROUPS,
 )
 
 # 转换日期字符串为 date 对象
@@ -125,12 +126,43 @@ def get_sunday_admin_duty(d: date) -> list[DutyInfo]:
     return duties
 
 
+def get_safety_duty(d: date) -> list[DutyInfo]:
+    """获取某天的教师安全值班（周一到周五）"""
+    weekday = get_day_of_week(d)
+
+    # 周六、周日不是安全值班
+    if weekday >= 5:
+        return []
+
+    week_num = get_semester_week(d)
+    if week_num == 0:
+        return []
+
+    # 每周安排1组（每3周循环），每天1人
+    group_index = (week_num - 1) % len(SAFETY_DUTY_GROUPS)
+    group = SAFETY_DUTY_GROUPS[group_index]
+
+    duties = []
+    for grade, people in group.items():
+        # weekday: 0=周一, 1=周二, 2=周三, 3=周四, 4=周五
+        person = people[weekday]
+        duties.append({
+            "name": person,
+            "duty_type": "教师安全值班",
+            "location": grade,
+            "time_range": "13:00-14:00"
+        })
+
+    return duties
+
+
 def get_all_duties(d: date) -> list[DutyInfo]:
     """获取某天的所有值班"""
     duties = []
     duties.extend(get_night_shift(d))
     duties.extend(get_admin_duty(d))
     duties.extend(get_sunday_admin_duty(d))
+    duties.extend(get_safety_duty(d))
     return duties
 
 
