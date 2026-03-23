@@ -84,6 +84,7 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
 
     if admin_duties:
         lines.append("-===***===-")
+        lines.append("")
         lines.append("【常规行政值班】（7:00-21:40）")
         for d in admin_duties:
             lines.append(f"- {d['location']}：{d['name']}")
@@ -91,6 +92,7 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
 
     if safety_duties:
         lines.append("-===***===-")
+        lines.append("")
         lines.append("【教师安全值班】（13:00-14:00）")
         for d in safety_duties:
             lines.append(f"- {d['location']}：{d['name']}")
@@ -98,6 +100,7 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
 
     if sunday_duties:
         lines.append("-===***===-")
+	lines.append("")
         lines.append("【周日行政值班】（18:00-21:40）")
         for d in sunday_duties:
             lines.append(f"- {d['location']}：{d['name']}")
@@ -105,6 +108,7 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
 
     if night_duties:
         lines.append("-===***===-")
+	lines.append("")
         lines.append("【夜间值班】（21:30-次日7:00）")
         for d in night_duties:
             lines.append(f"- {d['name']}")
