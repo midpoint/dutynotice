@@ -88,15 +88,15 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
             lines.append(f"- {d['location']}：{d['name']}")
         lines.append("")
 
-    if sunday_duties:
-        lines.append("📅 ** 周日行政值班**（18:00-21:40）")
-        for d in sunday_duties:
-            lines.append(f"- {d['location']}：{d['name']}")
-        lines.append("")
-
     if safety_duties:
         lines.append("👮 **教师安全值班**（13:00-14:00）")
         for d in safety_duties:
+            lines.append(f"- {d['location']}：{d['name']}")
+        lines.append("")
+
+    if sunday_duties:
+        lines.append("📅 ** 周日行政值班**（18:00-21:40）")
+        for d in sunday_duties:
             lines.append(f"- {d['location']}：{d['name']}")
         lines.append("")
 
