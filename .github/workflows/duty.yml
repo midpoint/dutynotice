@@ -4,7 +4,7 @@ on:
   schedule:
     # 每周日到周五上午6点运行 (UTC = 北京时间 - 8)
     # 所以设置为 UTC 22:00 = 北京时间次日 06:00
-    - cron: '0 22 * * 0-5'
+    - cron: '0 22 * * *'
   workflow_dispatch:
     # 允许手动触发
 
