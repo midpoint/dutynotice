@@ -8,7 +8,7 @@ from datetime import date, datetime, timezone, timedelta
 sys.path.insert(0, os.path.dirname(__file__))
 
 from dingtalk import send_dingtalk_message, format_duties_for_dingtalk
-from dutynotice import get_all_duties
+from dutynotice import get_all_duties, get_semester_week
 
 
 def get_china_date():
@@ -28,7 +28,8 @@ def main():
 
     today = get_china_date()
     weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"]
-    date_str = f"{today.year}年{today.month}月{today.day}日 {weekdays[today.weekday()]}"
+    week_num = get_semester_week(today)
+    date_str = f"{today.year}年{today.month}月{today.day}日 {weekdays[today.weekday()]} 第{week_num}周"
 
     duties = get_all_duties(today)
     content = format_duties_for_dingtalk(duties, date_str)
