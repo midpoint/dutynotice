@@ -1,0 +1,52 @@
+name: Summer Duty Notice
+
+on:
+  schedule:
+    # 每天北京时间 05:30 = UTC 21:30（前一天的 UTC）
+    - cron: '30 21 * * *'
+  workflow_dispatch:
+    # 允许手动触发
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+jobs:
+  summer-duty-notice:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            summer_config.py
+            summer_duty.py
+            send_summer_duty.py
+            dingtalk.py
+            duty.txt
+            requirements.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check DingTalk config
+        id: check_config
+        run: |
+          if [ -z "$DINGTALK_WEBHOOK" ] || [ -z "$DINGTALK_SECRET" ]; then
+            echo "钉钉配置不完整，跳过推送"
+            exit 1
+          fi
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+
+      - name: Send summer duty notification
+        if: success()
+        env:
+          DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
+          DINGTALK_SECRET: ${{ secrets.DINGTALK_SECRET }}
+        run: python3 send_summer_duty.py

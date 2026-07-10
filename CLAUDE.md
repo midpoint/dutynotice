@@ -10,12 +10,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 dutynotice/
-├── config.py       # All configuration (semester dates, duty personnel)
-├── dutynotice.py   # Core duty logic (week calculation, duty assignment)
-├── cli.py          # Command-line interface
-├── dingtalk.py     # DingTalk webhook integration
-├── send_duty.py    # Scheduled push script for GitHub Actions
-└── requirements.txt
+├── config.py            # Semester configuration (dates, duty personnel)
+├── dutynotice.py        # Semester duty logic (week calculation, rotation)
+├── cli.py               # Semester CLI interface
+├── dingtalk.py          # DingTalk webhook integration (shared)
+├── send_duty.py         # Semester scheduled push (GitHub Actions)
+│
+├── duty.txt             # Summer duty schedule table (GBK encoded CSV)
+├── summer_config.py     # Summer config — parses duty.txt
+├── summer_duty.py       # Summer duty logic (date lookup)
+├── summer_cli.py        # Summer CLI interface
+├── send_summer_duty.py  # Summer scheduled push (GitHub Actions)
+│
+├── requirements.txt     # Python dependencies
+└── .github/workflows/
+    ├── duty.yml         # Semester workflow (06:00 Beijing, Sun-Fri)
+    └── summer_duty.yml  # Summer workflow (05:30 Beijing, daily)
 ```
 
 ## Key Functions in dutynotice.py
@@ -36,7 +46,53 @@ All duty configuration is in `config.py`:
 - `SUNDAY_ADMIN_DUTIES` - Sunday admin personnel
 - `SAFETY_DUTY_GROUPS` - Teacher safety duty (3 groups x 3 grades)
 
+## Summer Module (暑假值班)
+
+Files: `summer_config.py` / `summer_duty.py` / `summer_cli.py` / `send_summer_duty.py`
+
+- Schedule source: `duty.txt` (GBK encoded CSV with columns: 日期,带班领导,值班行政,保安1,保安2)
+- Date range: July 11 — August 30
+- Lookup-based (not algorithmic rotation) — reads the fixed schedule from CSV
+
+### Key Functions in summer_duty.py
+
+- `get_summer_duty(d)` — Look up duty info for a date (returns dict or None)
+- `is_in_summer(d)` — Check if date is in summer range
+- `query_person(name)` — Find all summer duties for a person
+
+### Message Format
+
+Sent at 05:30 Beijing time, includes **today + tomorrow** duty info:
+```
+今天值班安排：
+带班领导：X
+值班行政：X
+保    安：X  X
+---
+明天值班安排（X月X日 周X）：
+带班领导：X
+...
+```
+
 ## Common Commands
+
+```bash
+# Semester (常规学期)
+python3 cli.py today
+python3 cli.py date 2026-3-5
+python3 cli.py week 3
+python3 cli.py person 张三
+
+# Summer (暑假)
+python3 summer_cli.py today
+python3 summer_cli.py date 2026-7-11
+python3 summer_cli.py range 2026-7-11 2026-8-30
+python3 summer_cli.py person 肖林军
+
+# Test DingTalk locally
+DINGTALK_WEBHOOK=xxx DINGTALK_SECRET=xxx python3 send_duty.py
+DINGTALK_WEBHOOK=xxx DINGTALK_SECRET=xxx python3 send_summer_duty.py
+```
 
 ```bash
 # Local usage
@@ -52,5 +108,8 @@ DINGTALK_WEBHOOK=xxx DINGTALK_SECRET=xxx python3 send_duty.py
 ## Notes
 
 - Week starts from Sunday (weekday=6)
-- GitHub Actions workflow in `.github/workflows/duty.yml`
-- Message format is in `dingtalk.py` `format_duties_for_dingtalk()`
+- **Semester** GitHub Actions: `.github/workflows/duty.yml` — runs at Beijing 06:00 (UTC 22:00), Sun–Fri
+- **Summer** GitHub Actions: `.github/workflows/summer_duty.yml` — runs at Beijing 05:30 (UTC 21:30), daily
+- Both workflows share the same DingTalk secrets (`DINGTALK_WEBHOOK`, `DINGTALK_SECRET`)
+- `duty.txt` is GBK-encoded — always open with `encoding='gbk'`
+- Semester uses algorithmic rotation (cycle-based); summer uses fixed table lookup (CSV-based)
