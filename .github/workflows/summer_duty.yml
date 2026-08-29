@@ -3,9 +3,9 @@ name: Summer Duty Notice
 on:
   repository_dispatch:
     types: [my_cron_task]
-  schedule:
-    # 每天北京时间 05:30 = UTC 21:30（前一天的 UTC）
-    - cron: '30 21 * * *'
+  # schedule:
+  #   # 每天北京时间 05:30 = UTC 21:30（前一天的 UTC）
+  #   - cron: '30 21 * * *'
   workflow_dispatch:
     # 允许手动触发
 
