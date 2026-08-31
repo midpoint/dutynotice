@@ -8,6 +8,7 @@ from config import (
     SEMESTER_START,
     SEMESTER_END,
     NIGHT_SHIFT_GROUPS,
+    NIGHT_SHIFT_SUNDAY_ROSTER,
     ADMIN_DUTIES,
     SUNDAY_ADMIN_DUTIES,
     SAFETY_DUTY_GROUPS,
@@ -41,34 +42,30 @@ def get_day_of_week(d: date) -> int:
 def get_night_shift(d: date) -> list[DutyInfo]:
     """获取某天的夜间值班"""
     weekday = get_day_of_week(d)
-    if weekday in [4, 5]:  # 周五、周六不值班，星期天(6)到星期四(3)值班
+    if weekday in [4, 5]:  # 周五、周六不值班
         return []
 
     week_num = get_semester_week(d)
     if week_num == 0:
         return []
 
-    # 每周安排1组，3组循环
-    group_index = (week_num - 1) % len(NIGHT_SHIFT_GROUPS)
-    group = NIGHT_SHIFT_GROUPS[group_index]
-
-    # 周日(6)到周四(3)，对应索引0-4
-    # weekday: 0=周一, 1=周二, 2=周三, 3=周四, 6=周日
-    # 需要的索引: 周日=0, 周一=1, 周二=2, 周三=3, 周四=4
+    # 周日：16人名单轮流（每周日轮下一位，16个周日一轮）
     if weekday == 6:
-        day_index = 0
+        days = (d - SEMESTER_START_DATE).days
+        first_sunday_offset = (6 - SEMESTER_START_DATE.weekday()) % 7
+        sunday_index = (days - first_sunday_offset) // 7
+        person = NIGHT_SHIFT_SUNDAY_ROSTER[sunday_index % len(NIGHT_SHIFT_SUNDAY_ROSTER)]
     else:
-        day_index = weekday + 1
+        # 周一~周四：每周1组，4组轮流，每天1人
+        group = NIGHT_SHIFT_GROUPS[(week_num - 1) % len(NIGHT_SHIFT_GROUPS)]
+        person = group[weekday]  # 周一=0, 周二=1, 周三=2, 周四=3
 
-    if 0 <= day_index < len(group):
-        person = group[day_index]
-        return [{
-            "name": person,
-            "duty_type": "夜间值班",
-            "location": "学校",
-            "time_range": "21:30-次日7:00"
-        }]
-    return []
+    return [{
+        "name": person,
+        "duty_type": "夜间值班",
+        "location": "学校",
+        "time_range": "21:30-次日7:00"
+    }]
 
 
 def get_admin_duty(d: date) -> list[DutyInfo]:
@@ -138,14 +135,14 @@ def get_safety_duty(d: date) -> list[DutyInfo]:
     if week_num == 0:
         return []
 
-    # 每周安排1组（每3周循环），每天1人
-    group_index = (week_num - 1) % len(SAFETY_DUTY_GROUPS)
-    group = SAFETY_DUTY_GROUPS[group_index]
-
+    # 每个年级独立分组轮换（初一3组，初二/初三4组）
     duties = []
-    for grade, people in group.items():
+    for grade, groups in SAFETY_DUTY_GROUPS.items():
+        # 每周安排1组，按各年级自己的组数循环
+        group_index = (week_num - 1) % len(groups)
+        group = groups[group_index]
         # weekday: 0=周一, 1=周二, 2=周三, 3=周四, 4=周五
-        person = people[weekday]
+        person = group[weekday]
         duties.append({
             "name": person,
             "duty_type": "教师安全值班",

@@ -16,6 +16,7 @@ from dutynotice import (
     get_night_shift,
     get_admin_duty,
     get_sunday_admin_duty,
+    get_safety_duty,
     is_in_semester,
     query_person,
 )
@@ -53,6 +54,7 @@ def cmd_today():
     night = get_night_shift(today)
     admin = get_admin_duty(today)
     sunday = get_sunday_admin_duty(today)
+    safety = get_safety_duty(today)
 
     if night:
         print(f"\n🌙 夜间值班（21:30-次日7:00）：")
@@ -67,6 +69,11 @@ def cmd_today():
     if sunday:
         print(f"\n📅 周日行政值班（18:00-21:40）：")
         for d in sunday:
+            print(f"   {d['location']}：{d['name']}")
+
+    if safety:
+        print(f"\n👨‍🏫 教师安全值班（13:00-14:00）：")
+        for d in safety:
             print(f"   {d['location']}：{d['name']}")
 
 
@@ -101,6 +108,7 @@ def cmd_date(date_str: str):
     night = get_night_shift(d)
     admin = get_admin_duty(d)
     sunday = get_sunday_admin_duty(d)
+    safety = get_safety_duty(d)
 
     if night:
         print(f"\n🌙 夜间值班（21:30-次日7:00）：")
@@ -115,6 +123,11 @@ def cmd_date(date_str: str):
     if sunday:
         print(f"\n📅 周日行政值班（18:00-21:40）：")
         for d in sunday:
+            print(f"   {d['location']}：{d['name']}")
+
+    if safety:
+        print(f"\n👨‍🏫 教师安全值班（13:00-14:00）：")
+        for d in safety:
             print(f"   {d['location']}：{d['name']}")
 
 

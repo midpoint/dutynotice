@@ -31,7 +31,7 @@ dutynotice/
 ## Key Functions in dutynotice.py
 
 - `get_semester_week(d)` - Get week number (starts from Sunday)
-- `get_night_shift(d)` - Night shift (Sun-Thu, 3 groups cycle)
+- `get_night_shift(d)` - Night shift (Sun: 16-person roster rotation; Mon-Thu: 4 groups cycle)
 - `get_admin_duty(d)` - Admin duty (Mon-Fri, fixed daily)
 - `get_sunday_admin_duty(d)` - Sunday admin duty (5-week cycle)
 - `get_safety_duty(d)` - Teacher safety duty (Mon-Fri, 13:00-14:00, 3-week cycle)
@@ -41,10 +41,11 @@ dutynotice/
 
 All duty configuration is in `config.py`:
 - `SEMESTER_START/SEMESTER_END` - Semester date range
-- `NIGHT_SHIFT_GROUPS` - Night shift personnel (3 groups)
+- `NIGHT_SHIFT_GROUPS` - Night shift personnel, Mon-Thu (4 groups x 4 people)
+- `NIGHT_SHIFT_SUNDAY_ROSTER` - Sunday night shift roster (16 people, one per Sunday)
 - `ADMIN_DUTIES` - Admin duty personnel (4 categories)
 - `SUNDAY_ADMIN_DUTIES` - Sunday admin personnel
-- `SAFETY_DUTY_GROUPS` - Teacher safety duty (3 groups x 3 grades)
+- `SAFETY_DUTY_GROUPS` - Teacher safety duty (初一 3 groups, 初二/初三 4 groups, keyed by grade)
 
 ## Summer Module (暑假值班)
 
@@ -82,6 +83,9 @@ python3 cli.py today
 python3 cli.py date 2026-3-5
 python3 cli.py week 3
 python3 cli.py person 张三
+
+# Regression tests (验证轮换算法与配置结构)
+python3 test_dutynotice.py
 
 # Summer (暑假)
 python3 summer_cli.py today
