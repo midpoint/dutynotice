@@ -112,8 +112,8 @@ DINGTALK_WEBHOOK=xxx DINGTALK_SECRET=xxx python3 send_duty.py
 ## Notes
 
 - Week starts from Sunday (weekday=6)
-- **Semester** GitHub Actions: `.github/workflows/duty.yml` — runs at Beijing 06:00 (UTC 22:00), Sun–Fri
-- **Summer** GitHub Actions: `.github/workflows/summer_duty.yml` — runs at Beijing 05:30 (UTC 21:30), daily
+- **Semester** GitHub Actions: `.github/workflows/duty.yml` — cron `45 20 * * *`, runs daily at Beijing 04:45 (UTC 20:45); message includes today's duties + tomorrow preview
+- **Summer** GitHub Actions: `.github/workflows/summer_duty.yml` — runs at Beijing 05:30 (UTC 21:30), daily; message includes today + tomorrow
 - Both workflows share the same DingTalk secrets (`DINGTALK_WEBHOOK`, `DINGTALK_SECRET`)
 - `duty.txt` is GBK-encoded — always open with `encoding='gbk'`
 - Semester uses algorithmic rotation (cycle-based); summer uses fixed table lookup (CSV-based)

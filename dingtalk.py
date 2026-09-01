@@ -69,18 +69,14 @@ def send_dingtalk_message(
         return False
 
 
-def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
-    """格式化值班信息为钉钉markdown内容"""
-    if not duties:
-        return f"### {date_str}\n\n今日无值班安排"
-
-    # 按类型分组
+def _format_duties_sections(duties: list) -> list[str]:
+    """按类型分组生成值班信息段落（不含日期标题）"""
     night_duties = [d for d in duties if d["duty_type"] == "夜间值班"]
     admin_duties = [d for d in duties if d["duty_type"] == "行政值班"]
     sunday_duties = [d for d in duties if d["duty_type"] == "周日行政值班"]
     safety_duties = [d for d in duties if d["duty_type"] == "教师安全值班"]
 
-    lines = [f"### {date_str}", ""]
+    lines = []
 
     if admin_duties:
         lines.append("--== ✧･ﾟ: *✧･ﾟ:*  *:･ﾟ✧*:･ﾟ✧ ==--")
@@ -113,6 +109,36 @@ def format_duties_for_dingtalk(duties: list, date_str: str) -> str:
         for d in night_duties:
             lines.append(f"- {d['name']}")
         lines.append("")
+
+    return lines
+
+
+def format_duties_for_dingtalk(
+    duties: list,
+    date_str: str,
+    tomorrow_duties: list | None = None,
+    tomorrow_str: str | None = None,
+) -> str:
+    """格式化值班信息为钉钉markdown内容
+
+    提供 tomorrow_duties/tomorrow_str 时，在今日信息后追加明日值班预告
+    """
+    if not duties and not tomorrow_duties:
+        return f"### {date_str}\n\n今日无值班安排"
+
+    lines = [f"### {date_str}", ""]
+    if duties:
+        lines.extend(_format_duties_sections(duties))
+    else:
+        lines.append("今日无值班安排")
+        lines.append("")
+
+    if tomorrow_duties and tomorrow_str:
+        lines.append("---")
+        lines.append("")
+        lines.append(f"### 明天（{tomorrow_str}）")
+        lines.append("")
+        lines.extend(_format_duties_sections(tomorrow_duties))
 
     return "\n".join(lines)
 

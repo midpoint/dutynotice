@@ -40,6 +40,7 @@ from dutynotice import (
     is_in_semester,
     query_person,
 )
+from dingtalk import format_duties_for_dingtalk
 
 START = SEMESTER_START_DATE
 
@@ -226,6 +227,36 @@ class QueryPersonTest(unittest.TestCase):
 
     def test_unknown_person(self):
         self.assertEqual(query_person("不存在的人", START, SEMESTER_END_DATE), [])
+
+
+class DingTalkFormatTest(unittest.TestCase):
+    """钉钉消息格式：今日信息 + 明日值班预告"""
+
+    def test_tomorrow_preview_appended(self):
+        """明日预告追加在今日信息之后，用分隔线隔开"""
+        today_duties = get_all_duties(week_monday(2))
+        tomorrow_duties = get_all_duties(week_monday(2) + timedelta(days=1))
+        content = format_duties_for_dingtalk(today_duties, "今天", tomorrow_duties, "明天")
+        self.assertIn("### 今天", content)
+        self.assertIn("### 明天（明天）", content)
+        self.assertLess(content.index("### 今天"), content.index("### 明天（明天）"))
+        self.assertIn("---", content)
+
+    def test_no_tomorrow_block_when_empty(self):
+        """不提供明日信息时，消息中不含明日预告"""
+        content = format_duties_for_dingtalk(get_all_duties(week_monday(2)), "今天")
+        self.assertNotIn("明天", content)
+
+    def test_empty_today_still_shows_tomorrow(self):
+        """今日无值班（如周六）时，仍应包含明日预告"""
+        saturday = week_monday(2) + timedelta(days=5)
+        sunday = saturday + timedelta(days=1)
+        content = format_duties_for_dingtalk(
+            get_all_duties(saturday), "今天",
+            get_all_duties(sunday), "明天",
+        )
+        self.assertIn("今日无值班安排", content)
+        self.assertIn("### 明天（明天）", content)
 
 
 class ConfigStructureTest(unittest.TestCase):
